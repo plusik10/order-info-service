@@ -6,3 +6,7 @@ grpc:
   port: ':50051'
 postgres:
   max_connections: 50
+nuts:
+  cluster_id: 'test-cluster'
+  client_id: 'subscriber'
+  subject: 'order'

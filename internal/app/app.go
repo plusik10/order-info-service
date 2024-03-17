@@ -2,30 +2,55 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"sync"
 
+	"github.com/nats-io/stan.go"
 	"github.com/plusik10/cmd/order-info-service/internal/config"
+	"github.com/plusik10/cmd/order-info-service/internal/subscriber"
 )
 
 type App struct {
 	serviceProvider *serviceProvider
 	pathConfig      string
-	//subscriber      *subscriber.Subscriber
+	subscriber      *subscriber.Subscriber
 }
 
-func NewApp(ctx context.Context, pathConfig string) *App {
+func NewApp(ctx context.Context, pathConfig string) (*App, error) {
 	a := &App{pathConfig: pathConfig}
 	err := a.initDeps(ctx)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
-	return a
+	return a, err
+}
+
+func (a *App) Run(ctx context.Context) error {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	a.StartSubscriber(ctx, &wg)
+	wg.Wait()
+	return nil
+}
+
+func (a *App) StartSubscriber(ctx context.Context, wg *sync.WaitGroup) error {
+	subject := a.serviceProvider.GetConfig().Subject
+	a.subscriber.Nc.Subscribe(subject, func(msg *stan.Msg) {
+		a.subscriber.Create(ctx, msg.Data)
+	})
+	<-ctx.Done()
+	wg.Done()
+	a.subscriber.Close()
+	a.subscriber.Unsubscribe()
+	fmt.Println("end subscriber")
+	return nil
 }
 
 func (a *App) initDeps(ctx context.Context) error {
 	inits := []func(ctx context.Context) error{
 		a.initServiceProvider,
-		//a.initSubscribe,
+		a.initSubscribe,
 	}
 
 	for _, f := range inits {
@@ -37,11 +62,23 @@ func (a *App) initDeps(ctx context.Context) error {
 
 	return nil
 }
+func (a *App) initSubscribe(ctx context.Context) error {
+	clusterID := a.serviceProvider.GetConfig().Nuts.ClusterID
+	clientID := a.serviceProvider.GetConfig().Nuts.ClientID
 
-func (a *App) initServiceProvider(ctx context.Context) error {
-	cfg, err := config.NewConfig()
+	s, err := subscriber.NewSubscriber(clusterID, clientID, a.serviceProvider.GetOrderService(ctx))
 	if err != nil {
 		return err
+	}
+	a.subscriber = s
+	return nil
+}
+
+func (a *App) initServiceProvider(ctx context.Context) error {
+	op := "initServiceProvider"
+	cfg, err := config.NewConfig()
+	if err != nil {
+		return fmt.Errorf(op+": %s", err.Error())
 	}
 
 	a.serviceProvider = newServiceProvider(cfg)

@@ -14,6 +14,7 @@ type (
 	Config struct {
 		HTTP `yaml:"http"`
 		PG   `yaml:"postgres"`
+		Nuts `yaml:"nuts"`
 	}
 
 	HTTP struct {
@@ -24,6 +25,11 @@ type (
 		DSN                string `yaml:"dsn" env:"PG_DSN"`
 		MaxOpenConnections int32  `yaml:"max_connections"  env:"PG_MAX_CONNECT"`
 	}
+	Nuts struct {
+		ClusterID string `yaml:"cluster_id" env:"CLUSTER_ID"`
+		ClientID  string `yaml:"client_id" env:"CLIENT_ID"`
+		Subject   string `yaml:"subject" env:"SUBJECT"`
+	}
 )
 
 func NewConfig() (*Config, error) {
@@ -33,11 +39,7 @@ func NewConfig() (*Config, error) {
 	}
 
 	cfg := &Config{}
-	cfg.DSN = os.Getenv("PG_DSN")
-	cfg.MaxOpenConnections = 10
-
 	err := cleanenv.ReadConfig(path, cfg)
-
 	if err != nil {
 		return nil, err
 	}
@@ -65,6 +67,7 @@ func (c *Config) GetDBConfig() (*pgxpool.Config, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	poolConfig.ConnConfig.BuildStatementCache = nil
 	poolConfig.ConnConfig.PreferSimpleProtocol = true
 	poolConfig.MaxConns = c.PG.MaxOpenConnections

@@ -7,6 +7,8 @@ import (
 	"github.com/plusik10/cmd/order-info-service/internal/config"
 	"github.com/plusik10/cmd/order-info-service/internal/repository"
 	"github.com/plusik10/cmd/order-info-service/internal/repository/postgres"
+	"github.com/plusik10/cmd/order-info-service/internal/service"
+	"github.com/plusik10/cmd/order-info-service/internal/service/order"
 	"github.com/plusik10/cmd/order-info-service/pkg/db"
 )
 
@@ -14,7 +16,7 @@ type serviceProvider struct {
 	config          *config.Config
 	db              db.Client
 	orderRepository repository.OrderRepository
-	//orderService    service.OrderService
+	orderService    service.OrderService
 }
 
 func newServiceProvider(cfg *config.Config) *serviceProvider {
@@ -57,4 +59,12 @@ func (s *serviceProvider) GetOrderRepository(ctx context.Context) repository.Ord
 	}
 
 	return s.orderRepository
+}
+
+func (s *serviceProvider) GetOrderService(ctx context.Context) service.OrderService {
+	if s.orderService == nil {
+		s.orderService = order.NewOrderService(s.GetOrderRepository(ctx))
+	}
+
+	return s.orderService
 }
