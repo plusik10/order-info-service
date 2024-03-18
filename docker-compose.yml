@@ -22,3 +22,14 @@ services:
     ports:
       - "4222:4222"
       - "8222:8222"
+
+  order-info:
+      build:
+        context: .
+        dockerfile: Dockerfile
+      ports:
+        - "8080:8080"
+      environment:
+        - CONFIG_PATH=config.yml
+      depends_on:
+        - nats-streaming

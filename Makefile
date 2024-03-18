@@ -16,3 +16,7 @@ local-migration-down:
 .PHONY: server-run
 server-run:
 	CONFIG_PATH="config/config.yml" PG_DSN='postgresql://postgres:qwerty@localhost:54321/order-info-service' go run cmd/order-info-service/main.go
+
+.PHONY: sender-run
+sender-run:
+	CONFIG_PATH="config/config.yml" go run cmd/sender/main.go -config "config/config.yml"

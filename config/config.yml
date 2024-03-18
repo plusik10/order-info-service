@@ -8,5 +8,7 @@ postgres:
   max_connections: 50
 nuts:
   cluster_id: 'test-cluster'
-  client_id: 'subscriber'
+  client_sub_id: 'subscriber'
+  client_pub_id: 'publisher'
   subject: 'order'
+  url: 'nats://nats-streaming:4222'

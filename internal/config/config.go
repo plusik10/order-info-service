@@ -26,9 +26,12 @@ type (
 		MaxOpenConnections int32  `yaml:"max_connections"  env:"PG_MAX_CONNECT"`
 	}
 	Nuts struct {
-		ClusterID string `yaml:"cluster_id" env:"CLUSTER_ID"`
-		ClientID  string `yaml:"client_id" env:"CLIENT_ID"`
-		Subject   string `yaml:"subject" env:"SUBJECT"`
+		ClusterID   string `yaml:"cluster_id" env:"CLUSTER_ID"`
+		ClientSubID string `yaml:"client_sub_id" env:"CLIENT_SUB_ID"`
+		ClientPubId string `yaml:"client_pub_id" env:"CLIENT_PUB_ID"`
+
+		Subject string `yaml:"subject" env:"SUBJECT"`
+		URL     string `yaml:"url" env:"URL"`
 	}
 )
 

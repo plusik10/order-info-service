@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/nats-io/stan.go"
@@ -37,7 +38,11 @@ func (a *App) Run(ctx context.Context) error {
 func (a *App) StartSubscriber(ctx context.Context, wg *sync.WaitGroup) error {
 	subject := a.serviceProvider.GetConfig().Subject
 	a.subscriber.Nc.Subscribe(subject, func(msg *stan.Msg) {
-		a.subscriber.Create(ctx, msg.Data)
+		err := a.subscriber.Create(ctx, msg.Data)
+		if err != nil {
+			log.Println("Error creating order err: ", err.Error())
+		}
+		log.Println("Order created successfully")
 	})
 	<-ctx.Done()
 	wg.Done()
@@ -64,7 +69,7 @@ func (a *App) initDeps(ctx context.Context) error {
 }
 func (a *App) initSubscribe(ctx context.Context) error {
 	clusterID := a.serviceProvider.GetConfig().Nuts.ClusterID
-	clientID := a.serviceProvider.GetConfig().Nuts.ClientID
+	clientID := a.serviceProvider.GetConfig().Nuts.ClientSubID
 
 	s, err := subscriber.NewSubscriber(clusterID, clientID, a.serviceProvider.GetOrderService(ctx))
 	if err != nil {

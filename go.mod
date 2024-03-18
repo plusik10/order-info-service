@@ -4,11 +4,13 @@ go 1.22.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/brianvoe/gofakeit v3.18.0+incompatible
 	github.com/georgysavva/scany v1.2.1
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgconn v1.14.3
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/joho/godotenv v1.5.1
+	github.com/nats-io/nats.go v1.33.1
 	github.com/nats-io/stan.go v0.10.4
 )
 
@@ -28,7 +30,6 @@ require (
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/nats-io/nats-server/v2 v2.10.12 // indirect
 	github.com/nats-io/nats-streaming-server v0.25.6 // indirect
-	github.com/nats-io/nats.go v1.33.1 // indirect
 	github.com/nats-io/nkeys v0.4.7 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
 	golang.org/x/crypto v0.21.0 // indirect
