@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"os"
+	"time"
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -18,7 +19,8 @@ type (
 	}
 
 	HTTP struct {
-		Port string `yaml:"port"`
+		Port    string        `yaml:"port"`
+		Timeout time.Duration `yaml:"timeout"`
 	}
 
 	PG struct {
