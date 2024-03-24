@@ -23,23 +23,23 @@ func NewOrderRepository(client db.Client) repository.OrderRepository {
 // Create implements repository.Repository.
 func (r *orderRepository) Create(ctx context.Context, order model.Order) error {
 	op := "repository.OrderRepository.Create"
-	err := r.CreateOrder(ctx, order)
+	err := r.createOrder(ctx, order)
 	if err != nil {
 		return errors.New(op + ": " + err.Error())
 	}
 
-	err = r.CreateDelivery(ctx, order.OrderUID, order.Delivery)
+	err = r.createDelivery(ctx, order.OrderUID, order.Delivery)
 	if err != nil {
 		return errors.New(op + ": " + err.Error())
 	}
 
-	err = r.CreatePayment(ctx, order.OrderUID, order.Payment)
+	err = r.createPayment(ctx, order.OrderUID, order.Payment)
 	if err != nil {
 		return errors.New(op + ": " + err.Error())
 	}
 
 	for _, item := range order.Items {
-		err = r.CreateItems(ctx, order.OrderUID, item)
+		err = r.createItems(ctx, order.OrderUID, item)
 		if err != nil {
 			return errors.New(op + ": " + err.Error())
 		}
@@ -48,7 +48,7 @@ func (r *orderRepository) Create(ctx context.Context, order model.Order) error {
 	return nil
 }
 
-func (r *orderRepository) CreateOrder(ctx context.Context, order model.Order) error {
+func (r *orderRepository) createOrder(ctx context.Context, order model.Order) error {
 	op := "repository.OrderRepository.CreateOrder"
 	query, arg, err := squirrel.
 		Insert(_const.ORDER_TABLE).
@@ -92,7 +92,7 @@ func (r *orderRepository) CreateOrder(ctx context.Context, order model.Order) er
 	return nil
 }
 
-func (r *orderRepository) CreatePayment(ctx context.Context, orderUid string, payment model.Payment) error {
+func (r *orderRepository) createPayment(ctx context.Context, orderUid string, payment model.Payment) error {
 	op := "repository.OrderRepository.CreatePayment"
 	query, arg, err := squirrel.
 		Insert(_const.PAYMENT_TABLE).
@@ -137,7 +137,7 @@ func (r *orderRepository) CreatePayment(ctx context.Context, orderUid string, pa
 	return nil
 }
 
-func (r *orderRepository) CreateDelivery(ctx context.Context, orderUid string, delivery model.Delivery) error {
+func (r *orderRepository) createDelivery(ctx context.Context, orderUid string, delivery model.Delivery) error {
 	op := "repository.OrderRepository.CreateDelivery"
 	query, arg, err := squirrel.
 		Insert(_const.DELIVERY_TABLE).
@@ -174,7 +174,7 @@ func (r *orderRepository) CreateDelivery(ctx context.Context, orderUid string, d
 	return nil
 }
 
-func (r *orderRepository) CreateItems(ctx context.Context, OrderUID string, item model.Item) error {
+func (r *orderRepository) createItems(ctx context.Context, OrderUID string, item model.Item) error {
 	op := "repository.OrderRepository.CreateItems"
 	query, arg, err := squirrel.
 		Insert(_const.ITEMS_TABLE).
