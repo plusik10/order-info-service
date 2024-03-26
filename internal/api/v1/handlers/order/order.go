@@ -37,9 +37,9 @@ func Info(ctx context.Context, orderService service.OrderService) http.HandlerFu
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(order); err != nil {
+		_, err = w.Write(order)
+		if err != nil {
 			sendResponseError(w, err, 500)
-			return
 		}
 	}
 }

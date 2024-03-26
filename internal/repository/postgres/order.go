@@ -314,9 +314,7 @@ func (r *orderRepository) getDelivery(ctx context.Context, orderUID string) (mod
 	var delivery model.Delivery
 	err = r.client.DB().GetContext(ctx, &delivery, q, arg...)
 	if err != nil {
-
-		fmt.Println("Ну тут скан)")
-		fmt.Println(err, "query: "+q.QueryRow)
+		// TODO: upd
 		for _, a := range arg {
 			fmt.Println("arg: ", a)
 		}

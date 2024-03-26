@@ -2,7 +2,8 @@ package order
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
+	"errors"
 
 	"github.com/plusik10/cmd/order-info-service/internal/cache"
 	"github.com/plusik10/cmd/order-info-service/internal/model"
@@ -22,9 +23,17 @@ func NewOrderService(repo repository.OrderRepository, cache cache.Cache) service
 	}
 }
 
-func (s *orderService) Create(ctx context.Context, order model.Order) error {
+func (s *orderService) Create(ctx context.Context, data []byte) error {
 	// validate order
-	s.Cache.Set(order.OrderUID, order, 0)
+	// add to cash
+	// add to database
+	var order model.Order
+	if err := json.Unmarshal(data, &order); err != nil {
+		return err
+	}
+
+	s.Cache.Set(order.OrderUID, data, 0)
+
 	return s.Repo.Create(ctx, order)
 }
 
@@ -34,29 +43,42 @@ func (s *orderService) GetOrderUIDs(ctx context.Context) ([]string, error) {
 }
 
 // GetOrderByUID returns order by uid
-func (s *orderService) GetOrderByUID(ctx context.Context, orderUID string) (model.Order, error) {
-	var order model.Order
+func (s *orderService) GetOrderByUID(ctx context.Context, orderUID string) ([]byte, error) {
 	o, found := s.Cache.Get(orderUID)
 	if !found {
-		return s.Repo.GetOrderByUID(ctx, orderUID)
-	}
-	orderPtr, ok := o.(*model.Order)
-	if !ok {
-		return order, fmt.Errorf("failed to convert order to *model.Order")
+		order, err := s.Repo.GetOrderByUID(ctx, orderUID)
+		if err != nil {
+			return nil, err
+		}
+		data, err := json.Marshal(order)
+		if err != nil {
+			return nil, err
+		}
+		return data, nil
 	}
 
-	return *orderPtr, nil
+	switch v := o.(type) {
+	case nil:
+		return nil, errors.New("invalid order")
+	case []byte:
+		return v, nil
+	default:
+		return nil, errors.New("invalid order")
+	}
 }
 
 func (s *orderService) LoadOrders(ctx context.Context) error {
-
 	orders, err := s.Repo.GetOrders(ctx)
 	if err != nil {
 		return err
 	}
 
-	for _, order := range orders {
-		s.Cache.Set(order.OrderUID, order, 0)
+	for _, o := range orders {
+		order, err := json.Marshal(o)
+		if err != nil {
+			return err
+		}
+		s.Cache.Set(o.OrderUID, order, 0)
 	}
 	return nil
 }

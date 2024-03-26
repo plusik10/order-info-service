@@ -2,10 +2,8 @@ package subscriber
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/nats-io/stan.go"
-	"github.com/plusik10/cmd/order-info-service/internal/model"
 	"github.com/plusik10/cmd/order-info-service/internal/service"
 )
 
@@ -24,11 +22,7 @@ func NewSubscriber(clusterID string, clientID string, service service.OrderServi
 }
 
 func (s *Subscriber) Create(ctx context.Context, data []byte) error {
-	var order model.Order
-	if err := json.Unmarshal(data, &order); err != nil {
-		return err
-	}
-	return s.orderService.Create(ctx, order)
+	return s.orderService.Create(ctx, data)
 }
 
 func (s *Subscriber) Subscribe(subject string, callback stan.MsgHandler, opts ...stan.SubscriptionOption) error {
