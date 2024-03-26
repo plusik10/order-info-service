@@ -90,6 +90,7 @@ func (a *App) runPublicHTTP() error {
 
 func (a *App) StartSubscriber(ctx context.Context, wg *sync.WaitGroup) error {
 	subject := a.serviceProvider.GetConfig().Subject
+
 	a.subscriber.Nc.Subscribe(subject, func(msg *stan.Msg) {
 		err := a.subscriber.Create(ctx, msg.Data)
 		if err != nil {
@@ -98,10 +99,9 @@ func (a *App) StartSubscriber(ctx context.Context, wg *sync.WaitGroup) error {
 		log.Println("Order created successfully")
 	})
 	<-ctx.Done()
-	wg.Done()
 	a.subscriber.Close()
 	a.subscriber.Unsubscribe()
-	fmt.Println("end subscriber")
+	log.Println("end subscriber")
 	wg.Done()
 	return nil
 }

@@ -16,7 +16,7 @@ import (
 
 func nConnect(path string) (*nats.Conn, error) {
 	for {
-		time.Sleep(3 * time.Second)
+		time.Sleep(10 * time.Second)
 		nc, err := nats.Connect(path)
 		if err == nil {
 			return nc, nil
@@ -47,7 +47,7 @@ func main() {
 
 	log.Println("Connecting to nuts successfully")
 	for {
-		time.Sleep(3 * time.Second)
+		time.Sleep(10 * time.Second)
 		OrderUID := gofakeit.UUID()
 		cost := gofakeit.Uint16()
 		goodsTotal := gofakeit.Uint16()

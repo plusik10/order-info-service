@@ -1,14 +1,17 @@
 http:
   host: 'localhost'
-  port: ':8080'
+  port: ':8084'
 grpc:
   host: 'localhost'
   port: ':50051'
 postgres:
-  max_connections: 50
+  max_connections: 1
 nuts:
   cluster_id: 'test-cluster'
   client_sub_id: 'subscriber'
   client_pub_id: 'publisher'
   subject: 'order'
   url: 'nats://nats-streaming:4222'
+cache:
+  default_expiration: 0m
+  cleanup_interval: 0m

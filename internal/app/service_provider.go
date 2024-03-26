@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 
+	"github.com/plusik10/cmd/order-info-service/internal/cache"
+	localcach "github.com/plusik10/cmd/order-info-service/internal/cache/localCach"
 	"github.com/plusik10/cmd/order-info-service/internal/config"
 	"github.com/plusik10/cmd/order-info-service/internal/repository"
 	"github.com/plusik10/cmd/order-info-service/internal/repository/postgres"
@@ -17,12 +19,12 @@ type serviceProvider struct {
 	db              db.Client
 	orderRepository repository.OrderRepository
 	orderService    service.OrderService
+	cache           cache.Cache
 }
 
 func newServiceProvider(cfg *config.Config) *serviceProvider {
-	return &serviceProvider{
-		config: cfg,
-	}
+	sp := &serviceProvider{config: cfg}
+	return sp
 }
 
 func (s *serviceProvider) GetConfig() *config.Config {
@@ -61,9 +63,22 @@ func (s *serviceProvider) GetOrderRepository(ctx context.Context) repository.Ord
 	return s.orderRepository
 }
 
+func (s *serviceProvider) GetCache() cache.Cache {
+	if s.cache == nil {
+		s.cache = localcach.NewLocalCache(s.GetConfig().DefaultExpiration, s.GetConfig().CleanupInterval)
+	}
+
+	return s.cache
+}
+
 func (s *serviceProvider) GetOrderService(ctx context.Context) service.OrderService {
 	if s.orderService == nil {
-		s.orderService = order.NewOrderService(s.GetOrderRepository(ctx))
+		s.orderService = order.NewOrderService(s.GetOrderRepository(ctx), s.GetCache())
+		err := s.orderService.LoadOrders(ctx)
+		if err != nil {
+			log.Println("Error loading order service")
+		}
+
 	}
 
 	return s.orderService

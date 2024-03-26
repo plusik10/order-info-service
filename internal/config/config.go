@@ -13,9 +13,10 @@ import (
 
 type (
 	Config struct {
-		HTTP `yaml:"http"`
-		PG   `yaml:"postgres"`
-		Nuts `yaml:"nuts"`
+		HTTP  `yaml:"http"`
+		PG    `yaml:"postgres"`
+		Nuts  `yaml:"nuts"`
+		Cache `yaml:"cache"`
 	}
 
 	HTTP struct {
@@ -34,6 +35,11 @@ type (
 
 		Subject string `yaml:"subject" env:"SUBJECT"`
 		URL     string `yaml:"url" env:"URL"`
+	}
+
+	Cache struct {
+		DefaultExpiration time.Duration `yaml:"default_expiration" env:"DEFAULT_EXPIRATION"`
+		CleanupInterval   time.Duration `yaml:"cleanup_interval" env:"CLEANUP_INTERVAL"`
 	}
 )
 

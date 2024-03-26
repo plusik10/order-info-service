@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/plusik10/cmd/order-info-service/internal/model"
@@ -435,4 +436,66 @@ func (r *orderRepository) GetOrderByUID(ctx context.Context, orderUID string) (m
 	order.Items = items
 
 	return order, nil
+}
+
+func (r *orderRepository) GetOrders(ctx context.Context) ([]*model.Order, error) {
+	//op := "repository.OrderRepository.GetOrders"
+
+	query, arg, err := squirrel.
+		Select(_const.ORDER_UID,
+			_const.TRACK_NUMBER,
+			_const.ENTRY,
+			_const.LOCALE,
+			_const.INTERNAL_SIGNATURE,
+			_const.CUSTOMER_ID,
+			_const.DELIVERY_SERVICE,
+			_const.SHARD_KEY,
+			_const.SM_ID,
+			_const.DATE_CREATED,
+			_const.OOF_SHARD).
+		From(_const.ORDER_TABLE).
+		PlaceholderFormat(squirrel.Dollar).
+		ToSql()
+
+	if err != nil {
+		fmt.Println("error getting orders: ", err)
+	}
+
+	var orders []*model.Order
+
+	q := db.Query{
+		Name:     "GetAll",
+		QueryRow: query,
+	}
+	err = r.client.DB().SelectContext(ctx, &orders, q, arg...)
+	if err != nil {
+		log.Println("error geting orders")
+		return nil, err
+	}
+
+	if len(orders) == 0 {
+		return nil, nil
+	}
+
+	for i, order := range orders {
+		delivey, err := r.getDelivery(ctx, order.OrderUID)
+		if err != nil {
+			log.Println("error getting delivery: ", err)
+		}
+		orders[i].Delivery = delivey
+
+		payment, err := r.getPayment(ctx, order.OrderUID)
+		if err != nil {
+			fmt.Println("error getting payment: ", err)
+		}
+		orders[i].Payment = payment
+
+		items, err := r.getItems(ctx, order.OrderUID)
+		if err != nil {
+			fmt.Println("error getting items")
+		}
+		orders[i].Items = items
+	}
+
+	return orders, nil
 }
