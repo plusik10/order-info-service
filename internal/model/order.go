@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"time"
+
+	validation "github.com/go-ozzo/ozzo-validation"
+)
 
 type Order struct {
 	OrderUID          string    `json:"order_uid" db:"order_uid"`
@@ -54,4 +58,15 @@ type Item struct {
 	NmID        int    `json:"nm_id" db:"nm_id"`
 	Brand       string `json:"brand" db:"brand"`
 	Status      int    `json:"status" db:"status"`
+}
+
+func (o Order) Validate() error {
+	return validation.ValidateStruct(&o,
+		validation.Field(&o.OrderUID, validation.Required),
+		validation.Field(&o.TrackNumber, validation.Required),
+		validation.Field(&o.Entry, validation.Required),
+		validation.Field(&o.Delivery, validation.Required),
+		validation.Field(&o.Payment, validation.Required),
+		validation.Field(&o.Items, validation.Required),
+	)
 }

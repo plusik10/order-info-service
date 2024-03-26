@@ -95,9 +95,11 @@ func (a *App) StartSubscriber(ctx context.Context, wg *sync.WaitGroup) error {
 		err := a.subscriber.Create(ctx, msg.Data)
 		if err != nil {
 			log.Println("Error creating order err: ", err.Error())
+			return
 		}
 		log.Println("Order created successfully")
 	})
+
 	<-ctx.Done()
 	a.subscriber.Close()
 	a.subscriber.Unsubscribe()

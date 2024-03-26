@@ -2,9 +2,7 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/brianvoe/gofakeit"
@@ -16,7 +14,7 @@ import (
 
 func nConnect(path string) (*nats.Conn, error) {
 	for {
-		time.Sleep(10 * time.Second)
+		time.Sleep(1 * time.Second)
 		nc, err := nats.Connect(path)
 		if err == nil {
 			return nc, nil
@@ -27,7 +25,6 @@ func nConnect(path string) (*nats.Conn, error) {
 	}
 }
 func main() {
-	fmt.Println(os.Getenv("CONFIG_PATH"))
 	cfg, err := config.NewConfig()
 	if err != nil {
 		log.Fatal(err)
@@ -46,81 +43,113 @@ func main() {
 	defer sc.Close()
 
 	log.Println("Connecting to nuts successfully")
+	i := 0
 	for {
-		time.Sleep(10 * time.Second)
-		OrderUID := gofakeit.UUID()
-		cost := gofakeit.Uint16()
-		goodsTotal := gofakeit.Uint16()
-		payment := model.Payment{
-			Transaction:  gofakeit.UUID(),
-			RequestID:    gofakeit.UUID(),
-			Currency:     gofakeit.CurrencyShort(),
-			Provider:     gofakeit.CurrencyLong(),
-			Amount:       int(cost + goodsTotal),
-			PaymentDt:    int(gofakeit.Uint32()),
-			Bank:         gofakeit.BeerName(),
-			DeliveryCost: int(cost),
-			GoodsTotal:   int(goodsTotal),
-			CustomFee:    int(gofakeit.Uint16()),
-		}
+		time.Sleep(5 * time.Second)
+		i = i + 1
+		if i%5 == 0 {
+			jsonData, err := randomJson()
+			if err != nil {
+				log.Println("Error generating json data err: ", err.Error())
+				continue
+			}
 
-		delivery := model.Delivery{
-			Name:    gofakeit.Name(),
-			Phone:   gofakeit.Phone(),
-			Zip:     gofakeit.Zip(),
-			City:    gofakeit.City(),
-			Address: gofakeit.CountryAbr(),
-			Region:  gofakeit.CurrencyShort(),
-			Email:   gofakeit.Email(),
-		}
+			err = sc.Publish(cfg.Nuts.Subject, jsonData)
+			if err != nil {
+				log.Println("Error publishing to NATS err: ", err.Error())
+				continue
+			}
 
-		countItem := gofakeit.Uint32() % 10
-		Items := make([]model.Item, 0)
+			log.Println("Successfully published badjson data")
+		} else {
+			OrderUID := gofakeit.UUID()
+			cost := gofakeit.Uint16()
+			goodsTotal := gofakeit.Uint16()
+			payment := model.Payment{
+				Transaction:  gofakeit.UUID(),
+				RequestID:    gofakeit.UUID(),
+				Currency:     gofakeit.CurrencyShort(),
+				Provider:     gofakeit.CurrencyLong(),
+				Amount:       int(cost + goodsTotal),
+				PaymentDt:    int(gofakeit.Uint32()),
+				Bank:         gofakeit.BeerName(),
+				DeliveryCost: int(cost),
+				GoodsTotal:   int(goodsTotal),
+				CustomFee:    int(gofakeit.Uint16()),
+			}
 
-		for i := 0; i < int(countItem); i++ {
-			Items = append(Items, model.Item{
-				ChrtID:      int(gofakeit.Uint8()),
-				TrackNumber: gofakeit.UUID(),
-				Price:       int(gofakeit.Uint8()),
-				Rid:         gofakeit.UUID(),
-				Name:        gofakeit.Name(),
-				Sale:        int(gofakeit.Uint8()),
-				Size:        "0",
-				TotalPrice:  int(gofakeit.Uint8()),
-				NmID:        int(gofakeit.Uint8()),
-				Brand:       gofakeit.Company(),
-				Status:      gofakeit.StatusCode(),
-			})
-		}
+			delivery := model.Delivery{
+				Name:    gofakeit.Name(),
+				Phone:   gofakeit.Phone(),
+				Zip:     gofakeit.Zip(),
+				City:    gofakeit.City(),
+				Address: gofakeit.CountryAbr(),
+				Region:  gofakeit.CurrencyShort(),
+				Email:   gofakeit.Email(),
+			}
 
-		order := model.Order{
-			OrderUID:          OrderUID,
-			TrackNumber:       gofakeit.StreetNumber(),
-			Entry:             "DHL",
-			Delivery:          delivery,
-			Payment:           payment,
-			Items:             Items,
-			Locale:            "en-US",
-			InternalSignature: gofakeit.UUID(),
-			CustomerID:        gofakeit.UUID(),
-			DeliveryService:   gofakeit.UUID(),
-			Shardkey:          gofakeit.UUID(),
-			SmID:              1,
-			DateCreated:       gofakeit.Date(),
-			OofShard:          gofakeit.UUID(),
-		}
+			countItem := gofakeit.Uint32() % 10
+			Items := make([]model.Item, 0)
 
-		jsonData, err := json.Marshal(order)
-		if err != nil {
-			log.Println("Error generating json data err: ", err.Error())
-			continue
-		}
+			for i := 0; i < int(countItem); i++ {
+				Items = append(Items, model.Item{
+					ChrtID:      int(gofakeit.Uint8()),
+					TrackNumber: gofakeit.UUID(),
+					Price:       int(gofakeit.Uint8()),
+					Rid:         gofakeit.UUID(),
+					Name:        gofakeit.Name(),
+					Sale:        int(gofakeit.Uint8()),
+					Size:        "0",
+					TotalPrice:  int(gofakeit.Uint8()),
+					NmID:        int(gofakeit.Uint8()),
+					Brand:       gofakeit.Company(),
+					Status:      gofakeit.StatusCode(),
+				})
+			}
 
-		err = sc.Publish(cfg.Nuts.Subject, jsonData)
-		if err != nil {
-			log.Println("Error publishing to NATS err: ", err.Error())
-			continue
+			order := model.Order{
+				OrderUID:          OrderUID,
+				TrackNumber:       gofakeit.StreetNumber(),
+				Entry:             "DHL",
+				Delivery:          delivery,
+				Payment:           payment,
+				Items:             Items,
+				Locale:            "en-US",
+				InternalSignature: gofakeit.UUID(),
+				CustomerID:        gofakeit.UUID(),
+				DeliveryService:   gofakeit.UUID(),
+				Shardkey:          gofakeit.UUID(),
+				SmID:              1,
+				DateCreated:       gofakeit.Date(),
+				OofShard:          gofakeit.UUID(),
+			}
+
+			jsonData, err := json.Marshal(order)
+			if err != nil {
+				log.Println("Error generating json data err: ", err.Error())
+				continue
+			}
+
+			err = sc.Publish(cfg.Nuts.Subject, jsonData)
+			if err != nil {
+				log.Println("Error publishing to NATS err: ", err.Error())
+				continue
+			}
+			log.Println("order publish success: ", OrderUID)
 		}
-		log.Println("order publish success: ", OrderUID)
 	}
+}
+
+type badJsonData struct {
+	Name string `json:"name"`
+	Age  int    `json:"age"`
+}
+
+func randomJson() ([]byte, error) {
+	djd := badJsonData{
+		Name: gofakeit.Name(),
+		Age:  int(gofakeit.Int16()),
+	}
+
+	return json.Marshal(djd)
 }

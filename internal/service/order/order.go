@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/plusik10/cmd/order-info-service/internal/cache"
 	"github.com/plusik10/cmd/order-info-service/internal/model"
@@ -24,16 +25,15 @@ func NewOrderService(repo repository.OrderRepository, cache cache.Cache) service
 }
 
 func (s *orderService) Create(ctx context.Context, data []byte) error {
-	// validate order
-	// add to cash
-	// add to database
 	var order model.Order
-	if err := json.Unmarshal(data, &order); err != nil {
+	err := json.Unmarshal(data, &order)
+	if err != nil {
 		return err
 	}
-
+	if err := order.Validate(); err != nil {
+		return fmt.Errorf("unvalid order json err: %v", err)
+	}
 	s.Cache.Set(order.OrderUID, data, 0)
-
 	return s.Repo.Create(ctx, order)
 }
 
